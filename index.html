@@ -50,21 +50,10 @@
       justify-content: center;
       border-radius: 8px;
       color: #333;
-      animation: pop 0.2s ease;
+      transition: left 0.2s ease, top 0.2s ease;
+      user-select: none;
     }
-    .tile.merged {
-      animation: merge 0.2s ease;
-    }
-    @keyframes pop {
-      0% { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-    @keyframes merge {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    #resetBtn, #hintBtn, #mainBtn {
+    #resetBtn {
       margin-top: 10px;
       padding: 10px 20px;
       font-size: 16px;
@@ -72,15 +61,7 @@
       border-radius: 5px;
       color: white;
       cursor: pointer;
-    }
-    #resetBtn {
       background-color: #6a5acd;
-    }
-    #hintBtn {
-      background-color: #4caf50;
-    }
-    #mainBtn {
-      background-color: #2196f3;
     }
   </style>
 </head>
@@ -92,8 +73,6 @@
   </div>
   <div class="game-container" id="game"></div>
   <button id="resetBtn">Reset</button>
-  <button id="hintBtn">Hint</button>
-  <button id="mainBtn">Back</button>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
@@ -101,26 +80,13 @@
     const statusText = document.getElementById("status");
     const timerText = document.getElementById("timer");
     const resetBtn = document.getElementById("resetBtn");
-    const hintBtn = document.getElementById("hintBtn");
-    const mainBtn = document.getElementById("mainBtn");
     let grid, timer, seconds = 0;
 
     const tileSize = 80;
     const tileGap = 10;
 
-    function createTile(value, index, isNew = false, isMerged = false) {
-      const tile = document.createElement("div");
-      tile.classList.add("tile");
-      if (isNew) tile.classList.add("new");
-      if (isMerged) tile.classList.add("merged");
-      tile.textContent = value > 0 ? value : "";
-      tile.style.background = getTileColor(value);
-      const row = Math.floor(index / 4);
-      const col = index % 4;
-      tile.style.left = `${col * (tileSize + tileGap)}px`;
-      tile.style.top = `${row * (tileSize + tileGap)}px`;
-      return tile;
-    }
+    // Хранилище DOM-элементов плиток по индексу
+    const tileElements = {};
 
     function getTileColor(value) {
       const colors = {
@@ -140,20 +106,40 @@
       return colors[value] || "#8d6e63";
     }
 
-    function drawGrid(changed = []) {
-      container.innerHTML = "";
-      grid.forEach((val, i) => {
-        if (val !== 0) {
-          const isNew = changed.includes(i);
-          const isMerged = mergedIndexes.includes(i);
-          container.appendChild(createTile(val, i, isNew, isMerged));
+    function drawGrid() {
+      for (let i = 0; i < 16; i++) {
+        const val = grid[i];
+        if (val === 0) {
+          // Если плитка есть, но значение 0 — удаляем её
+          if (tileElements[i]) {
+            container.removeChild(tileElements[i]);
+            delete tileElements[i];
+          }
+        } else {
+          // Позиции
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          const left = `${col * (tileSize + tileGap)}px`;
+          const top = `${row * (tileSize + tileGap)}px`;
+
+          let tile = tileElements[i];
+          if (!tile) {
+            tile = document.createElement("div");
+            tile.classList.add("tile");
+            container.appendChild(tile);
+            tileElements[i] = tile;
+          }
+
+          tile.textContent = val;
+          tile.style.background = getTileColor(val);
+          tile.style.left = left;
+          tile.style.top = top;
         }
-      });
+      }
     }
 
     function initGame() {
       grid = Array.from({ length: 16 }, () => 0);
-      mergedIndexes = [];
       addRandomTile();
       addRandomTile();
       drawGrid();
@@ -174,13 +160,12 @@
       lastAdded = randIndex;
     }
 
-    let mergedIndexes = [], lastAdded = -1;
+    let lastAdded = -1;
 
-    function move(direction, previewOnly = false) {
+    function move(direction) {
       let moved = false;
       const size = 4;
-      const newGrid = Array.from({ length: 16 }, (_, i) => grid[i]);
-      const newMerged = [];
+      const newGrid = Array.from(grid);
 
       function getIndex(row, col) {
         return row * size + col;
@@ -202,7 +187,6 @@
         for (let k = 0; k < line.length - 1; k++) {
           if (line[k] === line[k + 1]) {
             line[k] *= 2;
-            newMerged.push(k);
             line[k + 1] = 0;
             moved = true;
           }
@@ -224,13 +208,16 @@
         }
       }
 
-      if (previewOnly) return moved;
-
       if (moved) {
+        // Удаляем старые плитки из DOM перед обновлением (чтобы не было артефактов)
+        Object.keys(tileElements).forEach(key => {
+          container.removeChild(tileElements[key]);
+        });
+        Object.keys(tileElements).forEach(key => delete tileElements[key]);
+
         grid = newGrid;
-        mergedIndexes = newMerged;
         addRandomTile();
-        drawGrid([lastAdded]);
+        drawGrid();
         checkGameState();
       }
     }
@@ -285,17 +272,6 @@
     });
 
     resetBtn.addEventListener("click", initGame);
-    hintBtn.addEventListener("click", () => {
-      const directions = ["up", "down", "left", "right"];
-      const valid = directions.filter(dir => move(dir, true));
-      if (valid.length === 0) {
-        statusText.textContent = "Нет доступных ходов";
-      } else {
-        statusText.textContent = `Совет: попробуйте ${valid[0].toUpperCase()}`;
-      }
-    });
-
-    mainBtn.addEventListener("click", () => Telegram.WebApp.close());
 
     Telegram.WebApp.ready();
     initGame();
