@@ -9,18 +9,19 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #fce4ec, #f3e5f5);
+      background: linear-gradient(to right, #1e1e2f, #2b2d42);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       height: 100vh;
       padding: 20px;
+      color: white;
     }
     h1 {
       margin: 10px;
-      color: #7b1fa2;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      color: #ffcc00;
+      font-family: 'Segoe UI', sans-serif;
     }
     #timer, #status {
       margin: 5px;
@@ -37,36 +38,40 @@
       position: relative;
       width: 340px;
       height: 340px;
-      background: #e1bee7;
+      background: #12131a;
       padding: 10px;
       border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
     }
     .tile {
       position: absolute;
       width: 80px;
       height: 80px;
-      font-size: 0;
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      background-color: transparent;
       background-size: cover;
       background-position: center;
+      background-color: rgba(0, 0, 0, 0.4);
+      text-shadow: 1px 1px 2px black;
       transition: top 0.2s ease, left 0.2s ease;
     }
-    .tile[data-val="2"] { background-image: url('https://i.imgur.com/QCZUvZd.png'); }
-    .tile[data-val="4"] { background-image: url('https://i.imgur.com/ZwG2UUM.png'); }
-    .tile[data-val="8"] { background-image: url('https://i.imgur.com/I4L4nqz.png'); }
-    .tile[data-val="16"] { background-image: url('https://i.imgur.com/KaM6EWT.png'); }
-    .tile[data-val="32"] { background-image: url('https://i.imgur.com/NDVuVZT.png'); }
-    .tile[data-val="64"] { background-image: url('https://i.imgur.com/rMCRehT.png'); }
-    .tile[data-val="128"] { background-image: url('https://i.imgur.com/Hed9kNb.png'); }
-    .tile[data-val="256"] { background-image: url('https://i.imgur.com/3cORe0V.png'); }
-    .tile[data-val="512"] { background-image: url('https://i.imgur.com/bFjCkQo.png'); }
-    .tile[data-val="1024"] { background-image: url('https://i.imgur.com/0MTycik.png'); }
-    .tile[data-val="2048"] { background-image: url('https://i.imgur.com/2PrdAYg.png'); }
+    .tile[data-val="2"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/6/60/Naruto_Uzumaki.png'); }
+    .tile[data-val="4"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/2b/Sasuke_Uchiha.png'); }
+    .tile[data-val="8"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b7/Sakura_Haruno.png'); }
+    .tile[data-val="16"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c9/Kakashi_Hatake.png'); }
+    .tile[data-val="32"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/eb/Itachi_Uchiha.png'); }
+    .tile[data-val="64"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/0d/Jiraiya_anime.png'); }
+    .tile[data-val="128"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/49/Madara_Uchiha.png'); }
+    .tile[data-val="256"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/1/13/Tsunade_anime.png'); }
+    .tile[data-val="512"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/4e/Hinata_Hyuga.png'); }
+    .tile[data-val="1024"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/53/Gaara_anime.png'); }
+    .tile[data-val="2048"] { background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/bf/Minato_Namikaze.png'); }
+
     #resetBtn {
       margin-top: 10px;
       padding: 10px 20px;
@@ -74,7 +79,7 @@
       border: none;
       border-radius: 5px;
       color: white;
-      background-color: #ab47bc;
+      background-color: #ffcc00;
       cursor: pointer;
     }
   </style>
@@ -102,6 +107,7 @@
       const tile = document.createElement("div");
       tile.className = "tile";
       tile.setAttribute("data-val", value);
+      tile.textContent = value;
       const row = Math.floor(index / 4);
       const col = index % 4;
       tile.style.left = `${col * (tileSize + tileGap)}px`;
