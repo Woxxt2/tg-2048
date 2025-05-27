@@ -463,3 +463,187 @@
     }
 
     // Сброс флага merged перед ход
+    // Сброс флага merged перед ходом
+    function resetMerged() {
+      for(const tile of tiles) {
+        tile.merged = false;
+      }
+    }
+
+    // Обработка спец. клеток после хода
+    function handleSpecialTiles() {
+      const specialTiles = tiles.filter(t => t.special);
+      for(const tile of specialTiles) {
+        const idx = tile.row * gridSize + tile.col;
+        
+        switch(tile.special) {
+          case 'bomb':
+            // Взрыв - удаляет соседние клетки
+            for(let r = Math.max(0, tile.row-1); r <= Math.min(gridSize-1, tile.row+1); r++) {
+              for(let c = Math.max(0, tile.col-1); c <= Math.min(gridSize-1, tile.col+1); c++) {
+                if(board[r][c] && board[r][c] !== tile) {
+                  tiles = tiles.filter(t => t !== board[r][c]);
+                  board[r][c] = null;
+                }
+              }
+            }
+            break;
+            
+          case 'freeze':
+            // Замораживает соседние клетки на 1 ход
+            for(let r = Math.max(0, tile.row-1); r <= Math.min(gridSize-1, tile.row+1); r++) {
+              for(let c = Math.max(0, tile.col-1); c <= Math.min(gridSize-1, tile.col+1); c++) {
+                if(board[r][c] && board[r][c] !== tile) {
+                  freezeCells.add(r * gridSize + c);
+                }
+              }
+            }
+            break;
+            
+          case 'teleport':
+            // Телепортирует плитку в случайное место
+            const empty = [];
+            for(let r=0; r<gridSize; r++) {
+              for(let c=0; c<gridSize; c++) {
+                if(board[r][c] === null && !freezeCells.has(r*gridSize+c)) {
+                  empty.push({r,c});
+                }
+              }
+            }
+            if(empty.length > 0) {
+              const {r, c} = empty[Math.floor(Math.random()*empty.length)];
+              board[tile.row][tile.col] = null;
+              board[r][c] = tile;
+              tile.row = r;
+              tile.col = c;
+            }
+            break;
+            
+          case 'shuffle':
+            // Перемешивает все плитки
+            const allTiles = [...tiles];
+            const positions = [];
+            
+            // Собираем все свободные позиции
+            for(let r=0; r<gridSize; r++) {
+              for(let c=0; c<gridSize; c++) {
+                if(board[r][c] === null && !freezeCells.has(r*gridSize+c)) {
+                  positions.push({r,c});
+                }
+              }
+            }
+            
+            // Перемешиваем плитки
+            shuffleArray(allTiles);
+            shuffleArray(positions);
+            
+            // Очищаем доску
+            for(let r=0; r<gridSize; r++) {
+              for(let c=0; c<gridSize; c++) {
+                board[r][c] = null;
+              }
+            }
+            
+            // Расставляем плитки
+            tiles = [];
+            for(let i=0; i<allTiles.length; i++) {
+              const tile = allTiles[i];
+              if(i < positions.length) {
+                tile.row = positions[i].r;
+                tile.col = positions[i].c;
+                board[tile.row][tile.col] = tile;
+              }
+              tiles.push(tile);
+            }
+            break;
+            
+          case 'mirror':
+            // Включает режим зеркала (инверсия управления) на 3 хода
+            mirrorMode = true;
+            setTimeout(() => {
+              mirrorMode = false;
+            }, 3000);
+            break;
+            
+          case 'double':
+            // Удваивает значение соседних плиток
+            for(let r = Math.max(0, tile.row-1); r <= Math.min(gridSize-1, tile.row+1); r++) {
+              for(let c = Math.max(0, tile.col-1); c <= Math.min(gridSize-1, tile.col+1); c++) {
+                if(board[r][c] && board[r][c] !== tile) {
+                  board[r][c].value *= 2;
+                  score += board[r][c].value;
+                }
+              }
+            }
+            scoreElem.textContent = `Счёт: ${score}`;
+            break;
+        }
+        
+        // Удаляем спец. эффект после активации
+        tile.special = null;
+      }
+      
+      // Очищаем замороженные клетки
+      freezeCells.clear();
+    }
+
+    // Функция для перемешивания массива
+    function shuffleArray(array) {
+      for(let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startGame() {
+      createGrid();
+      initBoard();
+    }
+
+    // Обработка клавиатуры
+    document.addEventListener('keydown', e => {
+      if(menu.classList.contains('hidden')) {
+        switch(e.key) {
+          case 'ArrowUp': move('up'); break;
+          case 'ArrowDown': move('down'); break;
+          case 'ArrowLeft': move('left'); break;
+          case 'ArrowRight': move('right'); break;
+        }
+      }
+    });
+
+    // Обработка свайпов на мобильных устройствах
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    gameContainer.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, false);
+
+    gameContainer.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+      if(menu.classList.contains('hidden')) {
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+        
+        if(Math.abs(dx) > Math.abs(dy)) {
+          if(dx > 50) move('right');
+          else if(dx < -50) move('left');
+        } else {
+          if(dy > 50) move('down');
+          else if(dy < -50) move('up');
+        }
+      }
+    }
+  })();
+  </script>
+</body>
+</html>
