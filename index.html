@@ -1,60 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>2048 Color Edition</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      margin: 0; font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #1e1e2f, #2b2d42);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-      padding: 20px;
-      color: white;
-      overflow: hidden;
+      color: white; display: flex; flex-direction: column; align-items: center; padding: 20px;
+      height: 100vh; user-select: none;
     }
     h1 {
-      margin: 10px;
-      color: #ffcc00;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    #timer, #status {
-      margin: 5px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 680px;
       margin-bottom: 10px;
+      color: #ffcc00;
     }
-    .game-container {
+    #game {
       position: relative;
       background: #12131a;
-      padding: 10px;
       border-radius: 15px;
       box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
       touch-action: none;
+    }
+    .cell {
+      background: #222430;
+      border-radius: 10px;
+      box-shadow: inset 0 0 5px #000;
+      border: 1px solid #44475a;
+      position: relative;
+    }
+    .grid-line {
+      position: absolute;
+      background: rgba(255,255,255,0.1);
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* вертикальные линии */
+    #game .v-line {
+      width: 1px; top: 0; bottom: 0;
+    }
+    /* горизонтальные линии */
+    #game .h-line {
+      height: 1px; left: 0; right: 0;
     }
     .tile {
       position: absolute;
-      font-size: 28px;
-      font-weight: bold;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
       text-shadow: 1px 1px 2px black;
-      transition: top 0.2s ease, left 0.2s ease;
+      transition: top 0.2s ease, left 0.2s ease, transform 0.2s ease;
+      user-select: none;
+      cursor: default;
     }
     .tile[data-val="2"] { background-color: #FF6B6B; }
     .tile[data-val="4"] { background-color: #4ECDC4; }
@@ -70,22 +73,25 @@
     .tile[data-val="4096"] { background-color: #F15BB5; font-size: 22px; }
     .tile[data-val="8192"] { background-color: #9B5DE5; font-size: 20px; }
 
+    /* Специальные */
     .tile.bomb {
       background-color: red;
-      font-size: 20px;
       animation: pulse 1s infinite;
     }
     .tile.freeze {
-      background-color: #00f;
-      font-size: 20px;
+      background-color: #0055ff;
     }
     .tile.teleport {
       background-color: #00ff99;
-      font-size: 18px;
     }
     .tile.shuffle {
       background-color: #ff00ff;
-      font-size: 18px;
+    }
+    .tile.mirror {
+      background-color: #ff8800;
+    }
+    .tile.double {
+      background-color: #8800ff;
     }
 
     @keyframes pulse {
@@ -94,73 +100,366 @@
       100% { transform: scale(1); }
     }
 
-    #resetBtn, .mode-btn, .mode-toggle {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      background-color: #ffcc00;
-      cursor: pointer;
-      margin: 5px;
-    }
-    .mode-btn.active {
-      background-color: #00F5D4;
-      color: #2b2d42;
-    }
-    .menu {
+    #menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0,0,0,0.8);
-      z-index: 10;
+      z-index: 100;
+      color: white;
+      user-select: none;
     }
-    .menu.hidden {
+    #menu.hidden {
       display: none;
-    }
-    .mode-select {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     .mode-buttons {
       display: flex;
-      margin: 20px 0;
+      gap: 15px;
+      margin: 15px 0;
+    }
+    button {
+      background-color: #ffcc00;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #2b2d42;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #e6b800;
+    }
+    button.active {
+      background-color: #00f5d4;
+      color: #2b2d42;
+    }
+    #specialToggle {
+      margin-bottom: 10px;
+    }
+    #score {
+      font-size: 20px;
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="menu" id="menu">
-    <div class="mode-select">
-      <h1>2048 Color Edition</h1>
-      <h2>Выберите режим игры</h2>
-      <div class="mode-buttons">
-        <button class="mode-btn active" data-size="4">4×4 (классика)</button>
-        <button class="mode-btn" data-size="6">6×6</button>
-        <button class="mode-btn" data-size="8">8×8 (экстрим)</button>
-      </div>
-      <button class="mode-toggle" id="specialToggle">Отключить спец. клетки</button>
-      <button id="startBtn">Начать игру</button>
+  <div id="menu">
+    <h1>2048 Color Edition</h1>
+    <h2>Выберите режим игры</h2>
+    <div class="mode-buttons">
+      <button class="mode-btn active" data-size="4">4×4 (классика)</button>
+      <button class="mode-btn" data-size="6">6×6</button>
+      <button class="mode-btn" data-size="8">8×8 (экстрим)</button>
     </div>
+    <button id="specialToggle">Отключить спец. клетки</button>
+    <button id="startBtn">Начать игру</button>
   </div>
-  <div class="game-container" id="game"></div>
+
+  <div id="score">Счёт: 0</div>
+  <div id="game"></div>
+
   <script>
+  (() => {
+    const gameContainer = document.getElementById('game');
+    const menu = document.getElementById('menu');
+    const startBtn = document.getElementById('startBtn');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const specialToggle = document.getElementById('specialToggle');
+    const scoreElem = document.getElementById('score');
+
+    let gridSize = 4;
     let specialEnabled = true;
-    document.getElementById('specialToggle').addEventListener('click', () => {
-      specialEnabled = !specialEnabled;
-      document.getElementById('specialToggle').textContent = specialEnabled ? 'Отключить спец. клетки' : 'Включить спец. клетки';
+    let board = [];
+    let tiles = [];
+    let tileSize = 0;
+    let score = 0;
+    let freezeCells = new Set(); // замороженные клетки, индексы
+    let mirrorMode = false;
+
+    // Спец. типы с вероятностью (в %)
+    const specialTypes = [
+      {type:'bomb', chance: 5},
+      {type:'freeze', chance: 5},
+      {type:'teleport', chance: 5},
+      {type:'shuffle', chance: 3},
+      {type:'mirror', chance: 3},
+      {type:'double', chance: 3},
+    ];
+
+    // Выбор режима
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        gridSize = +btn.dataset.size;
+      });
     });
 
-    document.getElementById('startBtn').addEventListener('click', () => {
-      alert('Логика игры будет добавлена.\nСпец. клетки ' + (specialEnabled ? 'включены' : 'отключены'));
+    // Переключение спец. клеток
+    specialToggle.addEventListener('click', () => {
+      specialEnabled = !specialEnabled;
+      specialToggle.textContent = specialEnabled ? 'Отключить спец. клетки' : 'Включить спец. клетки';
     });
-  </script>
-</body>
-</html>
+
+    startBtn.addEventListener('click', () => {
+      startGame();
+      menu.classList.add('hidden');
+    });
+
+    function createGrid() {
+      gameContainer.innerHTML = '';
+      freezeCells.clear();
+      mirrorMode = false;
+
+      gameContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+      gameContainer.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+      gameContainer.style.width = `${gridSize * 80 + (gridSize - 1) * 10}px`;
+      gameContainer.style.height = `${gridSize * 80 + (gridSize - 1) * 10}px`;
+      tileSize = 80;
+
+      // Рисуем ячейки
+      for(let i=0; i<gridSize*gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.style.width = tileSize + 'px';
+        cell.style.height = tileSize + 'px';
+        gameContainer.appendChild(cell);
+      }
+
+      // Добавляем сетку линий (горизонтальные и вертикальные)
+      // Вертикальные линии
+      for(let c=1; c<gridSize; c++) {
+        const vline = document.createElement('div');
+        vline.classList.add('grid-line', 'v-line');
+        vline.style.left = (c * (tileSize + 10) - 5) + 'px';
+        vline.style.top = '0px';
+        vline.style.bottom = '0px';
+        vline.style.height = '100%';
+        gameContainer.appendChild(vline);
+      }
+      // Горизонтальные линии
+      for(let r=1; r<gridSize; r++) {
+        const hline = document.createElement('div');
+        hline.classList.add('grid-line', 'h-line');
+        hline.style.top = (r * (tileSize + 10) - 5) + 'px';
+        hline.style.left = '0px';
+        hline.style.right = '0px';
+        hline.style.width = '100%';
+        gameContainer.appendChild(hline);
+      }
+    }
+
+    function newTileValue() {
+      return Math.random() < 0.9 ? 2 : 4;
+    }
+
+    // Добавить спец. клетку с небольшой вероятностью
+    function maybeSpecial() {
+      if (!specialEnabled) return null;
+      const rand = Math.random()*100;
+      let sum = 0;
+      for(const s of specialTypes) {
+        sum += s.chance;
+        if(rand <= sum) return s.type;
+      }
+      return null;
+    }
+
+    // Создаем плитку
+    function createTile(value, row, col, special=null) {
+      return {value, row, col, merged: false, special};
+    }
+
+    function initBoard() {
+      board = [];
+      for(let r=0; r<gridSize; r++) {
+        const row = [];
+        for(let c=0; c<gridSize; c++) {
+          row.push(null);
+        }
+        board.push(row);
+      }
+      tiles = [];
+      score = 0;
+      scoreElem.textContent = `Счёт: ${score}`;
+      freezeCells.clear();
+      mirrorMode = false;
+
+      addRandomTile();
+      addRandomTile();
+      render();
+    }
+
+    // Добавить случайную плитку
+    function addRandomTile() {
+      const empty = [];
+      for(let r=0; r<gridSize; r++) {
+        for(let c=0; c<gridSize; c++) {
+          if(board[r][c] === null && !freezeCells.has(r*gridSize+c)) {
+            empty.push({r,c});
+          }
+        }
+      }
+      if(empty.length === 0) return false;
+
+      const {r, c} = empty[Math.floor(Math.random()*empty.length)];
+      const val = newTileValue();
+      const special = maybeSpecial();
+      const tile = createTile(val, r, c, special);
+      board[r][c] = tile;
+      tiles.push(tile);
+      return true;
+    }
+
+    // Отрисовка плиток
+    function render() {
+      // Удаляем старые плитки
+      const oldTiles = [...gameContainer.querySelectorAll('.tile')];
+      oldTiles.forEach(t => t.remove());
+
+      // Добавляем плитки
+      for(const tile of tiles) {
+        const el = document.createElement('div');
+        el.classList.add('tile');
+        el.dataset.val = tile.value;
+        el.style.width = tileSize + 'px';
+        el.style.height = tileSize + 'px';
+        el.style.top = (tile.row*(tileSize+10)) + 'px';
+        el.style.left = (tile.col*(tileSize+10)) + 'px';
+
+        if(tile.special) el.classList.add(tile.special);
+
+        el.textContent = tile.special ? specialName(tile.special) : tile.value;
+        if(tile.value >= 2048) el.style.fontSize = '24px';
+        if(tile.value >= 4096) el.style.fontSize = '20px';
+
+        gameContainer.appendChild(el);
+      }
+    }
+
+    function specialName(type) {
+      switch(type) {
+        case 'bomb': return '💣';
+        case 'freeze': return '❄️';
+        case 'teleport': return '🌀';
+        case 'shuffle': return '🔀';
+        case 'mirror': return '🔄';
+        case 'double': return '×2';
+      }
+      return '';
+    }
+
+    // Проверка можно ли ходить
+    function canMove() {
+      for(let r=0; r<gridSize; r++) {
+        for(let c=0; c<gridSize; c++) {
+          const tile = board[r][c];
+          if(tile === null) return true; // пустая клетка - можно ходить
+          // проверить соседей для слияния
+          const neighbors = [
+            [r+1,c], [r-1,c], [r,c+1], [r,c-1]
+          ];
+          for(const [nr,nc] of neighbors) {
+            if(nr<0||nr>=gridSize||nc<0||nc>=gridSize) continue;
+            const ntile = board[nr][nc];
+            if(ntile && ntile.value === tile.value) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    // Обработка хода в направлении dir = 'up','down','left','right'
+    function move(dir) {
+      if(mirrorMode) {
+        if(dir === 'left') dir = 'right';
+        else if(dir === 'right') dir = 'left';
+        else if(dir === 'up') dir = 'down';
+        else if(dir === 'down') dir = 'up';
+      }
+
+      let moved = false;
+      resetMerged();
+
+      const vector = {
+        'left':  {x: -1, y: 0},
+        'right': {x: 1, y: 0},
+        'up':    {x: 0, y: -1},
+        'down':  {x: 0, y: 1},
+      }[dir];
+
+      // Определяем порядок обхода по строкам/столбцам в зависимости от направления
+      const startRow = vector.y === 1 ? gridSize-1 : 0;
+      const endRow = vector.y === 1 ? -1 : gridSize;
+      const stepRow = vector.y === 1 ? -1 : 1;
+
+      const startCol = vector.x === 1 ? gridSize-1 : 0;
+      const endCol = vector.x === 1 ? -1 : gridSize;
+      const stepCol = vector.x === 1 ? -1 : 1;
+
+      // Перебираем клетки в правильном порядке
+      for(let r = startRow; r !== endRow; r += stepRow) {
+        for(let c = startCol; c !== endCol; c += stepCol) {
+          const tile = board[r][c];
+          if(tile === null) continue;
+          if(freezeCells.has(r*gridSize+c)) continue; // заморожена - не двигается
+
+          let nr = r, nc = c;
+          while(true) {
+            const nextR = nr + vector.y;
+            const nextC = nc + vector.x;
+            if(nextR < 0 || nextR >= gridSize || nextC < 0 || nextC >= gridSize) break;
+            if(freezeCells.has(nextR*gridSize+nextC)) break; // нельзя заходить в замороженную
+
+            const nextTile = board[nextR][nextC];
+            if(nextTile === null) {
+              // просто сдвинуть
+              board[nextR][nextC] = tile;
+              board[nr][nc] = null;
+              tile.row = nextR; tile.col = nextC;
+              nr = nextR; nc = nextC;
+              moved = true;
+            } else if(!nextTile.merged && nextTile.value === tile.value && tile.special === null && nextTile.special === null) {
+              // слияние двух плиток (спец. плитки нельзя слить)
+              nextTile.value *= 2;
+              nextTile.merged = true;
+              board[nr][nc] = null;
+              // удалить старую плитку из tiles
+              tiles = tiles.filter(t => t !== tile);
+              score += nextTile.value;
+              scoreElem.textContent = `Счёт: ${score}`;
+              moved = true;
+
+              // Проверка достижения 2048+ — можно расширять
+              // Удаляем спец эффекты с этой плитки (если были)
+              nextTile.special = null;
+
+              break;
+            } else {
+              break;
+            }
+          }
+        }
+      }
+
+      if(moved) {
+        // Активировать спец. клетки (бонусы)
+        handleSpecialTiles();
+        addRandomTile();
+        render();
+
+        // Проверить конец игры
+        if(!canMove()) {
+          alert(`Игра окончена! Счёт: ${score}`);
+          menu.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Сброс флага merged перед ход
