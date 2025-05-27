@@ -1,445 +1,329 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>2048 Color Edition</title>
-  <style>
-    body {
-      margin: 0; font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1e1e2f, #2b2d42);
-      color: white; display: flex; flex-direction: column; align-items: center; padding: 20px;
-      height: 100vh; user-select: none;
-    }
-    h1 {
-      margin-bottom: 10px;
-      color: #ffcc00;
-    }
-    #game {
-      position: relative;
-      background: #12131a;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
-      display: grid;
-      gap: 10px;
-      margin-top: 20px;
-      touch-action: none;
-    }
-    .cell {
-      background: #222430;
-      border-radius: 10px;
-      box-shadow: inset 0 0 5px #000;
-      border: 1px solid #44475a;
-      position: relative;
-    }
-    .grid-line {
-      position: absolute;
-      background: rgba(255,255,255,0.1);
-      pointer-events: none;
-      z-index: 1;
-    }
-    /* вертикальные линии */
-    #game .v-line {
-      width: 1px; top: 0; bottom: 0;
-    }
-    /* горизонтальные линии */
-    #game .h-line {
-      height: 1px; left: 0; right: 0;
-    }
-    .tile {
-      position: absolute;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-weight: bold;
-      text-shadow: 1px 1px 2px black;
-      transition: top 0.2s ease, left 0.2s ease, transform 0.2s ease;
-      user-select: none;
-      cursor: default;
-    }
-    .tile[data-val="2"] { background-color: #FF6B6B; }
-    .tile[data-val="4"] { background-color: #4ECDC4; }
-    .tile[data-val="8"] { background-color: #45B7D1; }
-    .tile[data-val="16"] { background-color: #FFBE0B; }
-    .tile[data-val="32"] { background-color: #FB5607; }
-    .tile[data-val="64"] { background-color: #8338EC; }
-    .tile[data-val="128"] { background-color: #3A86FF; }
-    .tile[data-val="256"] { background-color: #FF006E; }
-    .tile[data-val="512"] { background-color: #9B5DE5; }
-    .tile[data-val="1024"] { background-color: #00BBF9; }
-    .tile[data-val="2048"] { background-color: #00F5D4; font-size: 24px; }
-    .tile[data-val="4096"] { background-color: #F15BB5; font-size: 22px; }
-    .tile[data-val="8192"] { background-color: #9B5DE5; font-size: 20px; }
-
-    /* Специальные */
-    .tile.bomb {
-      background-color: red;
-      animation: pulse 1s infinite;
-    }
-    .tile.freeze {
-      background-color: #0055ff;
-    }
-    .tile.teleport {
-      background-color: #00ff99;
-    }
-    .tile.shuffle {
-      background-color: #ff00ff;
-    }
-    .tile.mirror {
-      background-color: #ff8800;
-    }
-    .tile.double {
-      background-color: #8800ff;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    #menu {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      color: white;
-      user-select: none;
-    }
-    #menu.hidden {
-      display: none;
-    }
-    .mode-buttons {
-      display: flex;
-      gap: 15px;
-      margin: 15px 0;
-    }
-    button {
-      background-color: #ffcc00;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #2b2d42;
-      user-select: none;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #e6b800;
-    }
-    button.active {
-      background-color: #00f5d4;
-      color: #2b2d42;
-    }
-    #specialToggle {
-      margin-bottom: 10px;
-    }
-    #score {
-      font-size: 20px;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>2048 с спец-клетками</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #faf8ef;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  #game-container {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    background: #bbada0;
+    border-radius: 10px;
+    padding: 15px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 15px;
+  }
+  .cell {
+    width: 100%;
+    height: 100px;
+    background: #cdc1b4;
+    border-radius: 6px;
+    position: relative;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 100px;
+    color: #776e65;
+    user-select: none;
+    transition: background 0.3s;
+  }
+  /* Цвета обычных чисел 2048 */
+  .tile-2 { background: #eee4da; color: #776e65; }
+  .tile-4 { background: #ede0c8; color: #776e65; }
+  .tile-8 { background: #f2b179; color: #f9f6f2; }
+  .tile-16 { background: #f59563; color: #f9f6f2; }
+  .tile-32 { background: #f67c5f; color: #f9f6f2; }
+  .tile-64 { background: #f65e3b; color: #f9f6f2; }
+  .tile-128 { background: #edcf72; color: #f9f6f2; font-size: 35px; }
+  .tile-256 { background: #edcc61; color: #f9f6f2; font-size: 35px; }
+  .tile-512 { background: #edc850; color: #f9f6f2; font-size: 35px; }
+  .tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 30px; }
+  .tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 30px; }
+  
+  /* Спец-клетки */
+  .tile-killer { background: #e74c3c; color: white; font-size: 30px; }
+  .tile-frozen { background: #3498db; color: white; font-size: 30px; }
+  .tile-golden { background: #f1c40f; color: #333; font-size: 30px; }
+  .tile-bomb { background: #2c3e50; color: white; font-size: 30px; }
+  
+  #score {
+    margin-top: 15px;
+    font-size: 24px;
+  }
+  #message {
+    margin-top: 15px;
+    font-size: 20px;
+    color: #e74c3c;
+    height: 24px;
+  }
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    background: #8f7a66;
+    color: white;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #7a6654;
+  }
+</style>
 </head>
 <body>
-  <div id="menu">
-    <h1>2048 Color Edition</h1>
-    <h2>Выберите режим игры</h2>
-    <div class="mode-buttons">
-      <button class="mode-btn active" data-size="4">4×4 (классика)</button>
-      <button class="mode-btn" data-size="6">6×6</button>
-      <button class="mode-btn" data-size="8">8×8 (экстрим)</button>
-    </div>
-    <button id="specialToggle">Отключить спец. клетки</button>
-    <button id="startBtn">Начать игру</button>
-  </div>
+<h1>2048 с спец-клетками</h1>
+<div id="game-container"></div>
+<div id="score">Счет: 0</div>
+<div id="message"></div>
+<button id="restart">Начать заново</button>
 
-  <div id="score">Счёт: 0</div>
-  <div id="game"></div>
+<script>
+(() => {
+  const SIZE = 4;
+  const gameContainer = document.getElementById('game-container');
+  const scoreDisplay = document.getElementById('score');
+  const messageDisplay = document.getElementById('message');
+  const restartBtn = document.getElementById('restart');
 
-  <script>
-  (() => {
-    const gameContainer = document.getElementById('game');
-    const menu = document.getElementById('menu');
-    const startBtn = document.getElementById('startBtn');
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const specialToggle = document.getElementById('specialToggle');
-    const scoreElem = document.getElementById('score');
+  // Ячейки хранят объекты {value: число или спец, type: 'normal'/'killer'/'frozen'/'golden'/'bomb', frozenCount: число, merged: bool}
+  let grid = [];
+  let score = 0;
+  let moved = false;
+  let gameOver = false;
 
-    let gridSize = 4;
-    let specialEnabled = true;
-    let board = [];
-    let tiles = [];
-    let tileSize = 0;
-    let score = 0;
-    let freezeCells = new Set(); // замороженные клетки, индексы
-    let mirrorMode = false;
-
-    // Спец. типы с вероятностью (в %)
-    const specialTypes = [
-      {type:'bomb', chance: 5},
-      {type:'freeze', chance: 5},
-      {type:'teleport', chance: 5},
-      {type:'shuffle', chance: 3},
-      {type:'mirror', chance: 3},
-      {type:'double', chance: 3},
-    ];
-
-    // Выбор режима
-    modeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        modeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        gridSize = +btn.dataset.size;
-      });
-    });
-
-    // Переключение спец. клеток
-    specialToggle.addEventListener('click', () => {
-      specialEnabled = !specialEnabled;
-      specialToggle.textContent = specialEnabled ? 'Отключить спец. клетки' : 'Включить спец. клетки';
-    });
-
-    startBtn.addEventListener('click', () => {
-      startGame();
-      menu.classList.add('hidden');
-    });
-
-    function createGrid() {
-      gameContainer.innerHTML = '';
-      freezeCells.clear();
-      mirrorMode = false;
-
-      gameContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
-      gameContainer.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
-      gameContainer.style.width = `${gridSize * 80 + (gridSize - 1) * 10}px`;
-      gameContainer.style.height = `${gridSize * 80 + (gridSize - 1) * 10}px`;
-      tileSize = 80;
-
-      // Рисуем ячейки
-      for(let i=0; i<gridSize*gridSize; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.style.width = tileSize + 'px';
-        cell.style.height = tileSize + 'px';
-        gameContainer.appendChild(cell);
-      }
-
-      // Добавляем сетку линий (горизонтальные и вертикальные)
-      // Вертикальные линии
-      for(let c=1; c<gridSize; c++) {
-        const vline = document.createElement('div');
-        vline.classList.add('grid-line', 'v-line');
-        vline.style.left = (c * (tileSize + 10) - 5) + 'px';
-        vline.style.top = '0px';
-        vline.style.bottom = '0px';
-        vline.style.height = '100%';
-        gameContainer.appendChild(vline);
-      }
-      // Горизонтальные линии
-      for(let r=1; r<gridSize; r++) {
-        const hline = document.createElement('div');
-        hline.classList.add('grid-line', 'h-line');
-        hline.style.top = (r * (tileSize + 10) - 5) + 'px';
-        hline.style.left = '0px';
-        hline.style.right = '0px';
-        hline.style.width = '100%';
-        gameContainer.appendChild(hline);
-      }
+  // Создать пустую сетку
+  function createEmptyGrid() {
+    grid = [];
+    for (let i = 0; i < SIZE * SIZE; i++) {
+      grid.push(null);
     }
+  }
 
-    function newTileValue() {
-      return Math.random() < 0.9 ? 2 : 4;
-    }
+  // Создать DOM клетки
+  function createCellElem() {
+    const div = document.createElement('div');
+    div.classList.add('cell');
+    return div;
+  }
 
-    // Добавить спец. клетку с небольшой вероятностью
-    function maybeSpecial() {
-      if (!specialEnabled) return null;
-      const rand = Math.random()*100;
-      let sum = 0;
-      for(const s of specialTypes) {
-        sum += s.chance;
-        if(rand <= sum) return s.type;
-      }
-      return null;
-    }
-
-    // Создаем плитку
-    function createTile(value, row, col, special=null) {
-      return {value, row, col, merged: false, special};
-    }
-
-    function initBoard() {
-      board = [];
-      for(let r=0; r<gridSize; r++) {
-        const row = [];
-        for(let c=0; c<gridSize; c++) {
-          row.push(null);
-        }
-        board.push(row);
-      }
-      tiles = [];
-      score = 0;
-      scoreElem.textContent = `Счёт: ${score}`;
-      freezeCells.clear();
-      mirrorMode = false;
-
-      addRandomTile();
-      addRandomTile();
-      render();
-    }
-
-    // Добавить случайную плитку
-    function addRandomTile() {
-      const empty = [];
-      for(let r=0; r<gridSize; r++) {
-        for(let c=0; c<gridSize; c++) {
-          if(board[r][c] === null && !freezeCells.has(r*gridSize+c)) {
-            empty.push({r,c});
+  // Отрисовать сетку и клетки
+  function render() {
+    gameContainer.innerHTML = '';
+    for (let i = 0; i < SIZE * SIZE; i++) {
+      const cellElem = createCellElem();
+      const cell = grid[i];
+      if (cell) {
+        // Добавляем класс по типу и значению
+        if(cell.type === 'normal'){
+          cellElem.classList.add('tile-' + cell.value);
+          cellElem.textContent = cell.value;
+        } else {
+          cellElem.classList.add('tile-' + cell.type);
+          if(cell.type === 'frozen' && cell.frozenCount !== undefined){
+            cellElem.textContent = '❄️' + cell.frozenCount;
+          } else if(cell.type === 'killer'){
+            cellElem.textContent = '☠️';
+          } else if(cell.type === 'golden'){
+            cellElem.textContent = '⭐';
+          } else if(cell.type === 'bomb'){
+            cellElem.textContent = '💣';
           }
         }
       }
-      if(empty.length === 0) return false;
+      gameContainer.appendChild(cellElem);
+    }
+    scoreDisplay.textContent = 'Счет: ' + score;
+    if(gameOver){
+      messageDisplay.textContent = 'Игра окончена!';
+    } else {
+      messageDisplay.textContent = '';
+    }
+  }
 
-      const {r, c} = empty[Math.floor(Math.random()*empty.length)];
-      const val = newTileValue();
-      const special = maybeSpecial();
-      const tile = createTile(val, r, c, special);
-      board[r][c] = tile;
-      tiles.push(tile);
-      return true;
+  // Получить все пустые позиции в сетке
+  function getEmptyIndices() {
+    const empty = [];
+    for(let i = 0; i < grid.length; i++){
+      if(!grid[i]) empty.push(i);
+    }
+    return empty;
+  }
+
+  // Добавить новую клетку на случайную пустую позицию
+  function addRandomTile() {
+    const empty = getEmptyIndices();
+    if(empty.length === 0) return false;
+
+    // Вероятности добавления спец-клеток (прим.):
+    // 70% - обычная (2 или 4), 10% - убийца, 10% - замороженная, 5% - золотая, 5% - бомба
+    const rnd = Math.random();
+    let newCell;
+    if(rnd < 0.7){
+      newCell = {value: Math.random() < 0.9 ? 2 : 4, type: 'normal', merged: false};
+    } else if (rnd < 0.8) {
+      newCell = {type: 'killer', merged: false};
+    } else if (rnd < 0.9) {
+      newCell = {type: 'frozen', frozenCount: 3, merged: false};
+    } else if (rnd < 0.95) {
+      newCell = {type: 'golden', merged: false};
+    } else {
+      newCell = {type: 'bomb', merged: false};
     }
 
-    // Отрисовка плиток
-    function render() {
-      // Удаляем старые плитки
-      const oldTiles = [...gameContainer.querySelectorAll('.tile')];
-      oldTiles.forEach(t => t.remove());
+    const pos = empty[Math.floor(Math.random() * empty.length)];
+    grid[pos] = newCell;
+    return true;
+  }
 
-      // Добавляем плитки
-      for(const tile of tiles) {
-        const el = document.createElement('div');
-        el.classList.add('tile');
-        el.dataset.val = tile.value;
-        el.style.width = tileSize + 'px';
-        el.style.height = tileSize + 'px';
-        el.style.top = (tile.row*(tileSize+10)) + 'px';
-        el.style.left = (tile.col*(tileSize+10)) + 'px';
+  // Переместить клетки в одном ряду/столбце и объединять их
+  // direction: 'left', 'right', 'up', 'down'
+  function move(direction) {
+    if(gameOver) return false;
 
-        if(tile.special) el.classList.add(tile.special);
+    resetMergeFlags();
+    moved = false;
 
-        el.textContent = tile.special ? specialName(tile.special) : tile.value;
-        if(tile.value >= 2048) el.style.fontSize = '24px';
-        if(tile.value >= 4096) el.style.fontSize = '20px';
+    // Передвижение: сдвинем по строкам или столбцам с разным порядком
+    // Для удобства создадим функции для доступа к индексам
 
-        gameContainer.appendChild(el);
-      }
+    let vector;
+    let traversalsX = [];
+    let traversalsY = [];
+
+    switch(direction){
+      case 'left':
+        vector = {x: -1, y: 0};
+        traversalsX = [0,1,2,3];
+        traversalsY = [0,1,2,3];
+        break;
+      case 'right':
+        vector = {x: 1, y: 0};
+        traversalsX = [3,2,1,0];
+        traversalsY = [0,1,2,3];
+        break;
+      case 'up':
+        vector = {x: 0, y: -1};
+        traversalsX = [0,1,2,3];
+        traversalsalsY = [0,1,2,3];
+        break;
+      case 'down':
+        vector = {x: 0, y: 1};
+        traversalsX = [0,1,2,3];
+        traversalsY = [3,2,1,0];
+        break;
     }
 
-    function specialName(type) {
-      switch(type) {
-        case 'bomb': return '💣';
-        case 'freeze': return '❄️';
-        case 'teleport': return '🌀';
-        case 'shuffle': return '🔀';
-        case 'mirror': return '🔄';
-        case 'double': return '×2';
-      }
-      return '';
+    // Исправим опечатку в up
+    if(direction === 'up'){
+      traversalsX = [0,1,2,3];
+      traversalsY = [0,1,2,3];
     }
 
-    // Проверка можно ли ходить
-    function canMove() {
-      for(let r=0; r<gridSize; r++) {
-        for(let c=0; c<gridSize; c++) {
-          const tile = board[r][c];
-          if(tile === null) return true; // пустая клетка - можно ходить
-          // проверить соседей для слияния
-          const neighbors = [
-            [r+1,c], [r-1,c], [r,c+1], [r,c-1]
-          ];
-          for(const [nr,nc] of neighbors) {
-            if(nr<0||nr>=gridSize||nc<0||nc>=gridSize) continue;
-            const ntile = board[nr][nc];
-            if(ntile && ntile.value === tile.value) return true;
-          }
-        }
-      }
+    if(direction === 'down'){
+      traversalsX = [0,1,2,3];
+      traversalsY = [3,2,1,0];
+    }
+
+    // Функция для получения индекса из x,y
+    function index(x,y){
+      return y*SIZE + x;
+    }
+
+    function canMoveInto(fromCell, toCell) {
+      if (!toCell) return true;
+      if(toCell.type === 'frozen' && toCell.frozenCount > 0) return false;
+      if(fromCell.type === 'frozen' && fromCell.frozenCount > 0) return false;
       return false;
     }
 
-    // Обработка хода в направлении dir = 'up','down','left','right'
-  function move(dir) {
-  if (mirrorMode) {
-    if (dir === 'left') dir = 'right';
-    else if (dir === 'right') dir = 'left';
-    else if (dir === 'up') dir = 'down';
-    else if (dir === 'down') dir = 'up';
-  }
+    // Ходим по всем клеткам в нужном порядке
+    for(let y of traversalsY){
+      for(let x of traversalsX){
+        const i = index(x,y);
+        let cell = grid[i];
+        if(!cell) continue;
+        if(cell.type === 'frozen' && cell.frozenCount > 0){
+          // замороженная клетка — уменьшаем счетчик заморозки в конце хода
+          continue;
+        }
 
-  let moved = false;
-  resetMerged();
+        let nx = x;
+        let ny = y;
 
-  const vector = {
-    'left':  {x: -1, y: 0},
-    'right': {x: 1, y: 0},
-    'up':    {x: 0, y: -1},
-    'down':  {x: 0, y: 1},
-  }[dir];
+        // Перемещаем клетку пока можно
+        while(true){
+          const nextX = nx + vector.x;
+          const nextY = ny + vector.y;
 
-      // Определяем порядок обхода по строкам/столбцам в зависимости от направления
-      const startRow = vector.y === 1 ? gridSize-1 : 0;
-      const endRow = vector.y === 1 ? -1 : gridSize;
-      const stepRow = vector.y === 1 ? -1 : 1;
+          if(nextX < 0 || nextX >= SIZE || nextY < 0 || nextY >= SIZE) break;
 
-      const startCol = vector.x === 1 ? gridSize-1 : 0;
-      const endCol = vector.x === 1 ? -1 : gridSize;
-      const stepCol = vector.x === 1 ? -1 : 1;
+          const nextIdx = index(nextX, nextY);
+          const nextCell = grid[nextIdx];
 
-      // Перебираем клетки в правильном порядке
-      for(let r = startRow; r !== endRow; r += stepRow) {
-        for(let c = startCol; c !== endCol; c += stepCol) {
-          const tile = board[r][c];
-          if(tile === null) continue;
-          if(freezeCells.has(r*gridSize+c)) continue; // заморожена - не двигается
-
-          let nr = r, nc = c;
-          while(true) {
-            const nextR = nr + vector.y;
-            const nextC = nc + vector.x;
-            if(nextR < 0 || nextR >= gridSize || nextC < 0 || nextC >= gridSize) break;
-            if(freezeCells.has(nextR*gridSize+nextC)) break; // нельзя заходить в замороженную
-
-            const nextTile = board[nextR][nextC];
-            if(nextTile === null) {
-              // просто сдвинуть
-              board[nextR][nextC] = tile;
-              board[nr][nc] = null;
-              tile.row = nextR; tile.col = nextC;
-              nr = nextR; nc = nextC;
-              moved = true;
-            } else if(!nextTile.merged && nextTile.value === tile.value && tile.special === null && nextTile.special === null) {
-              // слияние двух плиток (спец. плитки нельзя слить)
-              nextTile.value *= 2;
-              nextTile.merged = true;
-              board[nr][nc] = null;
-              // удалить старую плитку из tiles
-              tiles = tiles.filter(t => t !== tile);
-              score += nextTile.value;
-              scoreElem.textContent = `Счёт: ${score}`;
+          if(nextCell === null){
+            // Можно просто сдвинуть
+            grid[nextIdx] = cell;
+            grid[index(nx,ny)] = null;
+            nx = nextX;
+            ny = nextY;
+            moved = true;
+          } else {
+            // Попытка объединения или спец действие
+            if(nextCell.type === 'normal' && cell.type === 'normal' && nextCell.value === cell.value && !nextCell.merged && !cell.merged){
+              // Обычное объединение
+              grid[nextIdx].value *= 2;
+              grid[nextIdx].merged = true;
+              score += grid[nextIdx].value;
+              grid[index(nx, ny)] = null;
               moved = true;
 
-              // Проверка достижения 2048+ — можно расширять
-              // Удаляем спец эффекты с этой плитки (если были)
-              nextTile.special = null;
-
+              // Если золотая клетка, удваиваем результат
+              if(nextCell.merged && cell.type === 'golden'){
+                grid[nextIdx].value *= 2;
+                score += grid[nextIdx].value / 2; // добавляем удвоенную сумму
+              }
+              break;
+            } else if(cell.type === 'killer'){
+              // Клетка-убийца уничтожает соседнюю клетку и занимает ее место
+              grid[nextIdx] = cell;
+              grid[index(nx, ny)] = null;
+              moved = true;
+              break;
+            } else if(cell.type === 'bomb'){
+              // Бомба взрывается, очищая соседние клетки (включая себя)
+              explodeBomb(nx, ny);
+              grid[index(nx, ny)] = null;
+              moved = true;
+              break;
+            } else if(nextCell.type === 'frozen'){
+              // Замороженная клетка не двигается
+              break;
+            } else if(nextCell.type === 'golden'){
+              // Золотая клетка ведет себя как обычная 2, но удваивает при объединении
+              if(cell.type === 'normal' && cell.value === 2 && !nextCell.merged && !cell.merged){
+                grid[nextIdx] = {value: 4, type: 'normal', merged: true};
+                score += 4;
+                grid[index(nx, ny)] = null;
+                moved = true;
+                break;
+              }
               break;
             } else {
               break;
@@ -447,212 +331,116 @@
           }
         }
       }
+    }
 
-      if(moved) {
-        // Активировать спец. клетки (бонусы)
-        handleSpecialTiles();
-        addRandomTile();
-        render();
-
-        // Проверить конец игры
-        if(!canMove()) {
-          alert(`Игра окончена! Счёт: ${score}`);
-          menu.classList.remove('hidden');
+    // После хода уменьшаем счетчик заморозки для frozen клеток
+    for(let i = 0; i < grid.length; i++){
+      const cell = grid[i];
+      if(cell && cell.type === 'frozen' && cell.frozenCount > 0){
+        cell.frozenCount--;
+        if(cell.frozenCount === 0){
+          // превращаем в обычную клетку со значением 2 (или 4?)
+          grid[i] = {value: 2, type: 'normal', merged: false};
         }
       }
     }
 
-    // Сброс флага merged перед ход
-    // Сброс флага merged перед ходом
-    function resetMerged() {
-      for(const tile of tiles) {
-        tile.merged = false;
+    if(moved){
+      addRandomTile();
+      if(!canMove()){
+        gameOver = true;
       }
     }
 
-    let mirrorMovesLeft = 0; // количество ходов для зеркального режима
-let doubleMovesLeft = 0; // количество ходов для удвоения очков
-
-function handleSpecialTiles() {
-  const specialTiles = tiles.filter(t => t.special);
-  for (const tile of specialTiles) {
-    const idx = tile.row * gridSize + tile.col;
-
-    switch (tile.special) {
-      case 'bomb':
-        for (let r = Math.max(0, tile.row - 1); r <= Math.min(gridSize - 1, tile.row + 1); r++) {
-          for (let c = Math.max(0, tile.col - 1); c <= Math.min(gridSize - 1, tile.col + 1); c++) {
-            if (board[r][c] && board[r][c] !== tile) {
-              tiles = tiles.filter(t => t !== board[r][c]);
-              board[r][c] = null;
-            }
-          }
-        }
-        break;
-
-      case 'freeze':
-        for (let r = Math.max(0, tile.row - 1); r <= Math.min(gridSize - 1, tile.row + 1); r++) {
-          for (let c = Math.max(0, tile.col - 1); c <= Math.min(gridSize - 1, tile.col + 1); c++) {
-            if (board[r][c] && board[r][c] !== tile) {
-              freezeCells.add(r * gridSize + c);
-            }
-          }
-        }
-        break;
-
-      case 'teleport':
-        const empty = [];
-        for (let r = 0; r < gridSize; r++) {
-          for (let c = 0; c < gridSize; c++) {
-            if (board[r][c] === null && !freezeCells.has(r * gridSize + c)) {
-              empty.push({ r, c });
-            }
-          }
-        }
-        if (empty.length > 0) {
-          const { r, c } = empty[Math.floor(Math.random() * empty.length)];
-          board[tile.row][tile.col] = null;
-          board[r][c] = tile;
-          tile.row = r;
-          tile.col = c;
-        }
-        break;
-
-      case 'shuffle':
-        const allTiles = [...tiles];
-        const positions = [];
-
-        for (let r = 0; r < gridSize; r++) {
-          for (let c = 0; c < gridSize; c++) {
-            if (board[r][c] === null && !freezeCells.has(r * gridSize + c)) {
-              positions.push({ r, c });
-            }
-          }
-        }
-
-        shuffleArray(allTiles);
-        shuffleArray(positions);
-
-        for (let r = 0; r < gridSize; r++) {
-          for (let c = 0; c < gridSize; c++) {
-            board[r][c] = null;
-          }
-        }
-
-        tiles = [];
-        for (let i = 0; i < allTiles.length; i++) {
-          const tile = allTiles[i];
-          if (i < positions.length) {
-            tile.row = positions[i].r;
-            tile.col = positions[i].c;
-            board[tile.row][tile.col] = tile;
-          }
-          tiles.push(tile);
-        }
-        break;
-
-      case 'mirror':
-        mirrorMode = true;
-        mirrorMovesLeft = 3; // длительность эффекта в ходах
-        break;
-
-      case 'double':
-        doubleMovesLeft = 5; // длительность эффекта в ходах
-        break;
-    }
-
-    // После срабатывания спец клетки удаляем её (если нужно)
-    // Для примера, можно убрать спец. эффект после активации (вариант)
-    tile.special = null;
+    render();
+    return moved;
   }
-}
 
-    // Функция для перемешивания массива
-    function shuffleArray(array) {
-      for(let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
+  // Взрыв бомбы: очистить соседние клетки + сама клетка
+  function explodeBomb(x, y){
+    function inBounds(x,y){
+      return x >= 0 && x < SIZE && y >= 0 && y < SIZE;
     }
-
-    function startGame() {
-      createGrid();
-      initBoard();
-    }
-
-    // Обработка клавиатуры
-    document.addEventListener('keydown', e => {
-      if(menu.classList.contains('hidden')) {
-        switch(e.key) {
-          case 'ArrowUp': move('up'); break;
-          case 'ArrowDown': move('down'); break;
-          case 'ArrowLeft': move('left'); break;
-          case 'ArrowRight': move('right'); break;
+    for(let dx = -1; dx <= 1; dx++){
+      for(let dy = -1; dy <= 1; dy++){
+        const nx = x + dx;
+        const ny = y + dy;
+        if(inBounds(nx, ny)){
+          grid[ny * SIZE + nx] = null;
         }
       }
+    }
+  }
+
+  function resetMergeFlags(){
+    grid.forEach(cell => {
+      if(cell) cell.merged = false;
     });
+  }
 
-    // Обработка свайпов на мобильных устройствах
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
+  // Проверка, возможны ли ходы
+  function canMove(){
+    if(getEmptyIndices().length > 0) return true;
 
-    gameContainer.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    }, false);
+    function index(x,y){ return y*SIZE + x; }
 
-    gameContainer.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      touchEndY = e.changedTouches[0].screenY;
-      handleSwipe();
-    }, false);
- if(moved) {
-    if (mirrorMovesLeft > 0) {
-      mirrorMovesLeft--;
-      if (mirrorMovesLeft === 0) mirrorMode = false;
+    for(let y=0; y < SIZE; y++){
+      for(let x=0; x < SIZE; x++){
+        let cell = grid[index(x,y)];
+        if(!cell) continue;
+        let neighbors = [
+          [x+1,y], [x-1,y], [x,y+1], [x,y-1]
+        ];
+        for(let [nx, ny] of neighbors){
+          if(nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) continue;
+          let neighbor = grid[index(nx, ny)];
+          if(!neighbor) return true;
+          if(neighbor.type === cell.type && neighbor.value === cell.value) return true;
+        }
+      }
     }
-    if (doubleMovesLeft > 0) {
-      doubleMovesLeft--;
-    }
+    return false;
+  }
 
-    // Снимаем заморозку (все клетки размораживаются после хода)
-    freezeCells.clear();
-
-    handleSpecialTiles();
+  // Инициализация игры
+  function init() {
+    score = 0;
+    gameOver = false;
+    createEmptyGrid();
+    addRandomTile();
     addRandomTile();
     render();
-
-    if(!canMove()) {
-      alert(`Игра окончена! Счёт: ${score}`);
-      menu.classList.remove('hidden');
-    }
   }
-}
 
-// Утилита для перемешивания массива
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-    function handleSwipe() {
-      if(menu.classList.contains('hidden')) {
-        const dx = touchEndX - touchStartX;
-        const dy = touchEndY - touchStartY;
-        
-        if(Math.abs(dx) > Math.abs(dy)) {
-          if(dx > 50) move('right');
-          else if(dx < -50) move('left');
-        } else {
-          if(dy > 50) move('down');
-          else if(dy < -50) move('up');
-        }
-      }
+  // Обработка нажатий клавиш
+  window.addEventListener('keydown', e => {
+    if(gameOver) return;
+    switch(e.key){
+      case 'ArrowLeft':
+        e.preventDefault();
+        move('left');
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        move('right');
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        move('up');
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        move('down');
+        break;
     }
-  })();
-  </script>
+  });
+
+  restartBtn.addEventListener('click', () => {
+    init();
+  });
+
+  init();
+})();
+</script>
 </body>
 </html>
