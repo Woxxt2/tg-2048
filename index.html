@@ -436,6 +436,13 @@
     // Перемещение — плавно
     el.style.top = `${tile.row * (tileSize + gapSize)}px`;
     el.style.left = `${tile.col * (tileSize + gapSize)}px`;
+    if (tile.animateMerge) {
+  el.style.transform = 'scale(1.3)';
+  setTimeout(() => {
+    el.style.transform = 'scale(1)';
+  }, 100);
+  tile.animateMerge = false;
+}
   }
 }
 
@@ -520,6 +527,7 @@
               const points = doubleMode ? nextTile.value * 4 : nextTile.value * 2;
               nextTile.value *= 2;
               nextTile.merged = true;
+              nextTile.animateMerge = true;
               board[nr][nc] = null;
               tiles = tiles.filter(t => t !== tile);
               score += points;
